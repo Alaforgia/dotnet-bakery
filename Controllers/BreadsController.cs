@@ -18,5 +18,62 @@ namespace DotnetBakery.Controllers
         public BreadsController(ApplicationContext context) {
             _context = context;
         }
+
+        [HttpGet]
+        // /api/breads/
+        public IEnumerable<Bread> GetAll()
+        {
+            return _context.Breads
+                .Include(Baker => Baker.bakedBy);
+        }
+
+        [HttpPost]
+        public IActionResult Post(Bread bread)
+        {   // uses a transactions
+            _context.Add(bread); // insert, not committed
+            _context.SaveChanges();
+
+            return CreatedAtAction(nameof(Post),
+                                     new {id = bread.id}, bread);
+        }
+
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete (int id)
+        {
+            Bread bread = _context.Breads.SingleOrDefault(b => b.id == id);
+
+            if (bread is null)
+            {
+                return NotFound();
+            }
+
+            _context.Breads.Remove(bread);
+            _context.SaveChanges(); // really make the change
+
+
+            // 204
+            return NoContent();
+        }
+
+
+        // PUT /api/breads/:id
+        // returns NoContent()
+        // Bread must contain all fields that are NOT NULL
+        // nullables will be filled with NULL if they are missing from the request body JSON
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, Bread bread) {
+            Console.WriteLine("in PUT");
+            if (id != bread.id) {
+                return BadRequest();
+            }
+            // update in DB
+            _context.Update(bread);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+
     }
 }
